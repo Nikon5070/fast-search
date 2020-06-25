@@ -4,45 +4,48 @@ import generateTree from '../helper/tree';
 
 Vue.use(Vuex);
 
-const generateString = (length) => {
-  const result = Array(length);
+const randomChar = () => {
   const characters = 'АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЭЮЯабвгдеёжзийклмнопрстуфхцчшщэюя';
   const charactersLength = characters.length;
-  for (let i = 0; i < length; i += 1) {
-    result[i] = characters.charAt(Math.floor(Math.random() * charactersLength));
-  }
-  return result.join('');
+  return characters.charAt(Math.floor(Math.random() * charactersLength));
 };
 
-export const generateData = (stringLength, elementLength) => {
-  const result = Array(elementLength);
-  for (let i = 0; i < elementLength; i += 1) {
-    result[i] = generateString(stringLength);
-  }
-  return result;
-};
+const generateString = (length) => [...Array(length)]
+  .map(() => randomChar()).join('');
 
-export const checkPerformanceFn = (fn) => {
+export const generateData = (stringLength, elementLength) => [...Array(elementLength)]
+  .map(() => generateString(stringLength));
+
+export const checkPerformanceFn = (fn, str) => {
   const t1 = performance.now();
-  fn();
+  const data = fn();
   const t2 = performance.now();
   const result = (t2 - t1).toFixed(2);
 
-  console.log(`time working: ${result} ms`);
-  return result;
+  console.log(`time working: ${result} ms ${str || ''}`);
+  return { time: +result, data };
 };
 
-const data = generateData(100, 1000);
-const tree = generateTree(data);
+const stringLength = 100;
+const elementLength = 10000;
+
+const { data } = checkPerformanceFn(() => generateData(stringLength, elementLength), 'data');
 
 export default new Vuex.Store({
   state: {
     data,
-    tree,
+    tree: {},
   },
   mutations: {
+    GENERATE_TREE(state, payload) {
+      state.tree = payload;
+    },
   },
   actions: {
+    async ACTION_GENERATE_TREE({ state, commit }) {
+      const tree = generateTree(state.data);
+      commit('GENERATE_TREE', tree);
+    },
   },
   modules: {
   },

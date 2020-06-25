@@ -51,20 +51,32 @@ export default {
     }),
   },
 
-  watch: {
-    search() {
-      this.listResult = this.listResult.map((item) => {
-        let count = 0;
-        const performance = +checkPerformanceFn(() => {
-          count = item.fn();
-        });
+  async mounted() {
+    await this.$store.dispatch('ACTION_GENERATE_TREE');
+  },
 
-        return {
+  watch: {
+    search(value) {
+      if (!value) {
+        this.listResult = this.listResult.map((item) => ({
           ...item,
-          count,
-          performance,
-        };
-      });
+          count: 0,
+          performance: 0,
+        }));
+      } else {
+        this.listResult = this.listResult.map((item) => {
+          let count = 0;
+          const performance = checkPerformanceFn(() => {
+            count = item.fn();
+          }).time;
+
+          return {
+            ...item,
+            count,
+            performance,
+          };
+        });
+      }
     },
   },
 
